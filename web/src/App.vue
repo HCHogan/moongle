@@ -92,27 +92,51 @@ watchEffect(() => {
 <style>
 :root {
   --bg-color: #FEFAF7;
-  --text-color: #1e293b;
+  --text-color: #1c1c1e;
   --header-bg: var(--bg-color);
-  --header-border: #e2e8f0;
+  --header-border: rgba(0,0,0,0.08);
   --link-color: #475569;
   --link-hover-color: #4f46e5;
   --input-bg: #ffffff;
   --input-border: #e5e7eb;
   --input-focus-shadow: rgba(139, 92, 246, 0.2);
+
+  --tok-kw:#d73a49;
+  --tok-fn:#6f42c1;
+  --tok-type:#005cc5;
+  --tok-str:#032f62;
+  --tok-num:#005cc5;
+  --tok-bool:#005cc5;
+  --tok-comm:#6a737d;
+  --tok-op:#d73a49;
+  --tok-const:#b31d28;
+  --tok-id:#24292e;
+  --tok-punc:#24292e;
 }
 
 html.dark {
   color-scheme: dark;
   --bg-color: #181a1b;
-  --text-color: #cbd5e1;
+  --text-color: #f5f5f7;
   --header-bg: var(--bg-color);
-  --header-border: #334155;
+  --header-border: rgba(255,255,255,0.08);
   --link-color: #94a3b8;
   --link-hover-color: #818cf8;
   --input-bg: #334155;
   --input-border: #475569;
   --input-focus-shadow: rgba(130, 140, 248, 0.3);
+
+  --tok-kw:#ff7b72;
+  --tok-fn:#d2a8ff;
+  --tok-type:#79c0ff;
+  --tok-str:#a5d6ff;
+  --tok-num:#79c0ff;
+  --tok-bool:#79c0ff;
+  --tok-comm:#8b949e;
+  --tok-op:#ff7b72;
+  --tok-const:#79c0ff;
+  --tok-id:#c9d1d9;
+  --tok-punc:#c9d1d9;
 }
 
 body {
@@ -138,9 +162,13 @@ body {
   left: 0;
   z-index: 1000;
   width: 100%;
-  background-color: var(--header-bg);
   border-bottom: 1px solid var(--header-border);
   transition: background-color 0.3s, border-color 0.3s;
+  background-color: rgba(255, 255, 255, 0.7); /* 半透明 */
+  backdrop-filter: saturate(180%) blur(20px); /* 毛玻璃 */
+}
+html.dark .app-header {
+  background-color: rgba(28,28,30,0.7);
 }
 
 .header-content {
@@ -148,9 +176,9 @@ body {
   align-items: center;
   justify-content: space-between;
   width: 100%;          /* 占满整行 */
-  max-width: none;      /* 删掉 1400px 限制 */
-  margin: 0;            /* 去掉左右 auto 居中 */
-  padding: 0 32px;      /* 固定左右边距（你可以改成 16px/32px） */
+  max-width: none;
+  margin: 0;
+  padding: 0 32px;
   height: 64px;
   box-sizing: border-box;
 }
@@ -230,17 +258,12 @@ body {
   padding: 0 3.5rem 0 1.5rem;
   font-size: 0.9rem;
   border: 1px solid var(--input-border);
-  border-radius: 9999px;
-  background-color: var(--input-bg);
+  border-radius: 100px;
   color: var(--text-color);
   transition: all 0.2s ease;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-}
-.header-search-input:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 .header-search-button {
   position: absolute;

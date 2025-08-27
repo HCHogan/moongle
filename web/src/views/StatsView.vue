@@ -2,9 +2,8 @@
 import { ref, onMounted } from 'vue'
 
 interface Stats {
-  packages: number
+  decls: number
   modules: number
-  functions: number
   lastIndexed: string
 }
 
@@ -19,42 +18,36 @@ async function fetchStats() {
     const response = await fetch('/api/stats')
 
     if (!response.ok) {
-      // Handle HTTP errors like 404, 500, etc.
       if (response.status === 500) {
         error.value = 'Internal Server Error (500), please try again later or contact an administrator.'
       } else {
-        const errorText = await response.text();
-        error.value = `The server returned an unexpected response: ${response.status} - ${errorText}`;
+        const errorText = await response.text()
+        error.value = `The server returned an unexpected response: ${response.status} - ${errorText}`
       }
-      // Stop execution since we have an error
-      return;
+      return
     }
 
-    // Only attempt to parse JSON if the response was OK.
-    const data = await response.json();
+    const data = await response.json()
 
     if (data.status === 'ok' && data.dat) {
-      const receivedStats = data.dat;
-      // Basic validation of the data structure
+      const received = data.dat
       if (
-        typeof receivedStats.decls=== 'number' &&
-        typeof receivedStats.modules === 'number' &&
-        typeof receivedStats.lastIndexed === 'string'
+        typeof received.decls === 'number' &&
+        typeof received.modules === 'number' &&
+        typeof received.lastIndexed === 'string'
       ) {
-        stats.value = receivedStats;
+        stats.value = received
       } else {
-        error.value = 'Received invalid statistics format from the server.';
+        error.value = 'Received invalid statistics format from the server.'
       }
     } else {
-      error.value = data.err?.message || 'Failed to fetch statistics.';
+      error.value = data.err?.message || 'Failed to fetch statistics.'
     }
   } catch (e: any) {
-    // This will now primarily catch network errors or actual JSON parsing errors
-    // on a 2xx response.
     if (e instanceof SyntaxError) {
-      error.value = 'Could not parse the successful server response as JSON.';
+      error.value = 'Could not parse the successful server response as JSON.'
     } else {
-      error.value = `Request failed: ${e.message}`;
+      error.value = `Request failed: ${e.message}`
     }
   } finally {
     loading.value = false
@@ -62,8 +55,8 @@ async function fetchStats() {
 }
 
 function formatDateTime(isoString: string) {
-  if (!isoString) return 'N/A';
-  return new Date(isoString).toLocaleString();
+  if (!isoString) return 'N/A'
+  return new Date(isoString).toLocaleString()
 }
 
 onMounted(() => {
@@ -74,22 +67,27 @@ onMounted(() => {
 <template>
   <div class="page-container">
     <h1>Statistics</h1>
+
     <div v-if="loading" class="loading-indicator">
       <p>Loading...</p>
     </div>
+
     <div v-else-if="error" class="error-message">
       <p>Failed to load data: {{ error }}</p>
       <button @click="fetchStats">Retry</button>
     </div>
+
     <div v-else-if="stats" class="stats-grid">
       <div class="stat-item">
         <div class="stat-value">{{ stats.decls.toLocaleString() }}</div>
         <div class="stat-label">Declarations</div>
       </div>
+
       <div class="stat-item">
         <div class="stat-value">{{ stats.modules.toLocaleString() }}</div>
         <div class="stat-label">Modules</div>
       </div>
+
       <div class="stat-item stat-item-full">
         <div class="stat-label">Last Indexed Time</div>
         <div class="stat-value-small">{{ formatDateTime(stats.lastIndexed) }}</div>
@@ -99,65 +97,195 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/* -------- 基础排版 -------- */
 .page-container {
   display: flex;
-  flex: 1;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
   width: 100%;
-  padding: 2rem;
+
+  /* 轨道宽度更克制，避免卡片太宽显空 */
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+
   box-sizing: border-box;
   text-align: center;
-}
 
+  /* 若外部未提供变量，则用兜底色值 */
+  color: var(--ios-fg, #1c1c1e);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.01em;
+}
 h1 {
-  margin-bottom: 2rem;
+  margin: 0 0 28px;
+  font-weight: 700;
+  font-size: clamp(22px, 3.2vw, 28px);
 }
 
-.loading-indicator,
-.error-message {
-  margin-top: 2rem;
+/* -------- 加载/错误 -------- */
+.loading-indicator p,
+.error-message p {
+  color: var(--ios-muted, #8e8e93);
+  margin: 16px 0 0;
 }
-
 .error-message button {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.72);
+  color: var(--ios-fg, #1c1c1e);
   cursor: pointer;
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.error-message button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
 }
 
+/* -------- 自适应布局 -------- */
+/* 默认单列；≥760px 两列；信息卡始终整行 */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
+  grid-template-columns: 1fr;      /* 手机：单列 */
+  gap: 24px;                       /* 拉开卡片距离 */
   width: 100%;
-  max-width: 800px;
+  align-items: stretch;            /* 等高 */
 }
+@media (min-width: 760px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); } /* 桌面：两列 */
+}
+.stat-item-full { grid-column: 1 / -1; }                 /* 信息卡整行 */
 
+/* -------- 卡片视觉 -------- */
 .stat-item {
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+  min-height: 132px;
+  padding: 26px;
+  border-radius: 14px;
 
+  /* 毛玻璃 + 发丝边 + 轻阴影 */
+  background: rgba(255,255,255,0.85);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  backdrop-filter: saturate(180%) blur(18px);
+  border: 0.5px solid rgba(0,0,0,0.08);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06), 0 2px 10px rgba(0,0,0,0.04);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
 .stat-item-full {
-  grid-column: 1 / -1;
+  min-height: 84px;
+  padding: 18px 22px;
+  align-items: flex-start;
+  text-align: left;
 }
 
+/* 暗黑模式兜底 */
+html.dark .stat-item {
+  background: rgba(28,28,30,0.72);
+  border: 0.5px solid rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.35);
+}
+
+/* -------- 字级与对齐 -------- */
 .stat-value {
-  font-size: 2.5rem;
-  font-weight: bold;
+  font-weight: 700;
+  font-size: clamp(28px, 2.6vw + 8px, 40px); /* 桌面最大 40px */
+  line-height: 1.15;
+  margin: 0 0 6px;
+  font-variant-numeric: tabular-nums;        /* 表格等宽数字 */
+  -webkit-text-fill-color: currentColor;     /* 防透明兜底 */
 }
-
-.stat-value-small {
-  font-size: 1.2rem;
-  margin-top: 0.5rem;
-}
-
 .stat-label {
-  font-size: 1rem;
-  color: #666;
-  margin-top: 0.5rem;
+  font-size: 13px;
+  color: var(--ios-muted, #8e8e93);
+  margin-top: 2px;
+  opacity: .72;
 }
+.stat-value-small {
+  font-size: 14px;
+  color: var(--ios-fg, #1c1c1e);
+  opacity: .78;
+}
+html.dark .stat-value-small { color: var(--ios-fg, #f5f5f7); }
+/* ===== 悬浮/按下效果：卡片浮起、阴影增强（仅鼠标设备启用） ===== */
+.stat-item,
+.stat-item-full {
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  will-change: transform, box-shadow;
+}
+
+/* 仅在可 hover 的环境启用（避免移动端误触） */
+@media (hover: hover) and (pointer: fine) {
+  .stat-item:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 14px 38px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06) !important;
+    border-color: rgba(0,0,0,0.10) !important;
+  }
+  .stat-item:active {
+    transform: translateY(-1px) !important; /* 轻压感 */
+    box-shadow: 0 10px 28px rgba(0,0,0,0.08), 0 3px 12px rgba(0,0,0,0.05) !important;
+  }
+
+  /* 信息卡悬浮弱一点，保持层级克制 */
+  .stat-item-full:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.09), 0 3px 14px rgba(0,0,0,0.05) !important;
+    border-color: rgba(0,0,0,0.10) !important;
+  }
+  .stat-item-full:active {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.08), 0 3px 10px rgba(0,0,0,0.05) !important;
+  }
+
+  /* 暗色模式下的悬浮阴影与边线 */
+  html.dark .stat-item:hover,
+  html.dark .stat-item-full:hover {
+    box-shadow: 0 18px 44px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.42) !important;
+    border-color: rgba(255,255,255,0.16) !important;
+  }
+  html.dark .stat-item:active,
+  html.dark .stat-item-full:active {
+    box-shadow: 0 14px 36px rgba(0,0,0,0.55), 0 3px 12px rgba(0,0,0,0.38) !important;
+  }
+}
+
+/* 尊重减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .stat-item,
+  .stat-item-full {
+    transition: none;
+  }
+}
+
+/* 全局变量兜底（scoped 中用 :global 保证能作用到根） */
+:global(:root){
+  --ios-fg: #1c1c1e;               /* 亮色文字 */
+  --ios-muted: #8e8e93;            /* 亮色次级文字 */
+}
+
+:global(html.dark){
+  --ios-fg: #f5f5f7;               /* 暗色主文字 */
+  --ios-muted: rgba(235,235,245,.6); /* 暗色次级文字 */
+}
+
+/* 防止之前的透明文本规则影响数值颜色 */
+.stat-value{ -webkit-text-fill-color: currentColor; }
+
+/* 按钮/小字在暗色下也要能看清（可选加强） */
+:global(html.dark) .stat-value-small{ color: var(--ios-fg); }
+:global(html.dark) .stat-label{ color: var(--ios-muted); }
+:global(html.dark) .error-message button{
+  color: var(--ios-fg);
+  background: rgba(118,118,128,.24);
+  border-color: rgba(255,255,255,.12);
+}
+
 </style>
+

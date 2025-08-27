@@ -132,7 +132,7 @@ const handleSearch = () => {
   padding: 0.75rem 3.5rem 0.75rem 1.5rem; /* 右边距稍微增大给按钮留出空间 */
   font-size: 1rem;
   border: 1px solid #e5e7eb;
-  border-radius: 9999px;
+  border-radius: 100px;
   box-shadow: 0 1px 6px rgba(32, 33, 36, 0.1);
   transition: box-shadow 0.2s ease;
   box-sizing: border-box;

@@ -105,7 +105,7 @@ watch(
           }}
         </a>
         <!--<pre class="result-item-snippet"><code>{{ result.decl }}</code></pre> -->
-        <MoonBitHighlighter :code="result.decl" class="result-item-snippet" />
+        <MoonBitHighlighter mode = "simple" :code="result.decl" class="result-item-snippet" />
       </div>
     </div>
 
