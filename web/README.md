@@ -66,5 +66,6 @@ npm run lint
 ## TODO
 - [x] Automatically build wasm files
 - [] Font candidates
-- [] Header width
+- [x] Header width
 - [] Automatically recompile when web-tree-sitter version is updated
+- [] scm and parse highlight switch
