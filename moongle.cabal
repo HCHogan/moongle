@@ -63,6 +63,8 @@ library
         Moongle.Registry
         Moongle.Registry.Types
         Moongle.Config
+        Moongle.Config.Enhanced
+        Moongle.Error
         Moongle.General.Utils
         Moongle.Query
         Moongle.Query.Parser
@@ -93,6 +95,7 @@ library
         vector,
         optparse-applicative,
         aeson,
+        yaml,
         lens,
         lens-aeson,
         effectful,

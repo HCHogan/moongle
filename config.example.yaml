@@ -1,0 +1,20 @@
+database:
+  host: localhost
+  port: 5432
+  name: moongle
+  user: postgres
+  password: ""
+
+registry:
+  registryUrl: "https://moonbitlang-mooncakes.s3.us-west-2.amazonaws.com/user"
+  mooncakesBaseUrl: "https://moonbitlang-mooncakes.s3.us-west-2.amazonaws.com"
+  moongleStoragePath: "./storage"
+  parallel: 32
+
+logging:
+  level: info
+  format: text
+
+server:
+  host: 0.0.0.0
+  port: 8080
